@@ -381,7 +381,7 @@ class MysqliDb
      *
      * @return array Contains the returned rows from the query.
      */
-    public function rawQuery($query, $bindParams = null)
+    public function rawQuery($query, $bindParams = null, $throw = true)
     {
         $params = array(''); // Create the empty 0 index
         $this->_query = $query;
@@ -403,7 +403,12 @@ class MysqliDb
         $this->_lastQuery = $this->replacePlaceHolders($this->_query, $params);
         $res = $this->_dynamicBindResults($stmt);
         $this->reset();
-
+        
+        if ($throw && ($stmt->errno !== 0))
+        {
+            throw new Exception($stmt->error, $stmt->errno);
+        }
+        
         return $res;
     }
 
@@ -465,7 +470,7 @@ class MysqliDb
      *
      * @return array Contains the returned rows from the query.
      */
-    public function query($query, $numRows = null)
+    public function query($query, $numRows = null, $throw = true)
     {
         $this->_query = $query;
         $stmt = $this->_buildQuery($numRows);
@@ -475,6 +480,11 @@ class MysqliDb
         $res = $this->_dynamicBindResults($stmt);
         $this->reset();
 
+        if ($throw && ($stmt->errno !== 0))
+        {
+            throw new Exception($stmt->error, $stmt->errno);
+        }
+        
         return $res;
     }
 
@@ -539,7 +549,7 @@ class MysqliDb
      *
      * @return array Contains the returned rows from the select query.
      */
-    public function get($tableName, $numRows = null, $columns = '*')
+    public function get($tableName, $numRows = null, $columns = '*', $throw = true)
     {
         if (empty($columns)) {
             $columns = '*';
@@ -567,6 +577,11 @@ class MysqliDb
         $res = $this->_dynamicBindResults($stmt);
         $this->reset();
 
+        if ($throw && ($stmt->errno !== 0))
+        {
+            throw new Exception($stmt->error, $stmt->errno);
+        }
+        
         return $res;
     }
 
@@ -673,7 +688,7 @@ class MysqliDb
      *
      * @return bool
      */
-    public function update($tableName, $tableData, $numRows = null)
+    public function update($tableName, $tableData, $numRows = null, $throw = true)
     {
         if ($this->isSubQuery) {
             return;
@@ -688,6 +703,11 @@ class MysqliDb
         $this->_stmtErrno = $stmt->errno;
         $this->count = $stmt->affected_rows;
 
+        if ($throw && ($stmt->errno !== 0))
+        {
+            throw new Exception($stmt->error, $stmt->errno);
+        }
+        
         return $status;
     }
 
@@ -700,7 +720,7 @@ class MysqliDb
      *
      * @return bool Indicates success. 0 or 1.
      */
-    public function delete($tableName, $numRows = null)
+    public function delete($tableName, $numRows = null, $throw = true)
     {
         if ($this->isSubQuery) {
             return;
@@ -720,6 +740,11 @@ class MysqliDb
         $this->_stmtErrno = $stmt->errno;
         $this->reset();
 
+        if ($throw && ($stmt->errno !== 0))
+        {
+            throw new Exception($stmt->error, $stmt->errno);
+        }
+        
         return ($stmt->affected_rows > 0);
     }
 
@@ -1038,7 +1063,7 @@ class MysqliDb
      *
      * @return bool Boolean indicating whether the insert query was completed succesfully.
      */
-    private function _buildInsert($tableName, $insertData, $operation)
+    private function _buildInsert($tableName, $insertData, $operation, $throw = true)
     {
         if ($this->isSubQuery) {
             return;
@@ -1052,6 +1077,11 @@ class MysqliDb
         $haveOnDuplicate = !empty ($this->_updateColumns);
         $this->reset();
         $this->count = $stmt->affected_rows;
+        
+        if ($throw && ($stmt->errno !== 0))
+        {
+            throw new Exception($stmt->error, $stmt->errno);
+        }
 
         if ($stmt->affected_rows < 1) {
             // in case of onDuplicate() usage, if no rows were inserted
