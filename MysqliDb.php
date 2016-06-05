@@ -404,9 +404,9 @@ class MysqliDb
         $res = $this->_dynamicBindResults($stmt);
         $this->reset();
         
-        if ($throw && ($stmt->errno !== 0))
+        if ($throw && ($this->_stmtErrno !== 0))
         {
-            throw new Exception($stmt->error, $stmt->errno);
+            throw new Exception($this->_stmtError, $this->_stmtErrno);
         }
         
         return $res;
@@ -480,9 +480,9 @@ class MysqliDb
         $res = $this->_dynamicBindResults($stmt);
         $this->reset();
 
-        if ($throw && ($stmt->errno !== 0))
+        if ($throw && ($this->_stmtErrno !== 0))
         {
-            throw new Exception($stmt->error, $stmt->errno);
+            throw new Exception($this->_stmtError, $this->_stmtErrno);
         }
         
         return $res;
@@ -577,9 +577,9 @@ class MysqliDb
         $res = $this->_dynamicBindResults($stmt);
         $this->reset();
 
-        if ($throw && ($stmt->errno !== 0))
+        if ($throw && ($this->_stmtErrno !== 0))
         {
-            throw new Exception($stmt->error, $stmt->errno);
+            throw new Exception($this->_stmtError, $this->_stmtErrno);
         }
         
         return $res;
@@ -703,9 +703,9 @@ class MysqliDb
         $this->_stmtErrno = $stmt->errno;
         $this->count = $stmt->affected_rows;
 
-        if ($throw && ($stmt->errno !== 0))
+        if ($throw && ($this->_stmtErrno !== 0))
         {
-            throw new Exception($stmt->error, $stmt->errno);
+            throw new Exception($this->_stmtError, $this->_stmtErrno);
         }
         
         return $status;
@@ -740,9 +740,9 @@ class MysqliDb
         $this->_stmtErrno = $stmt->errno;
         $this->reset();
 
-        if ($throw && ($stmt->errno !== 0))
+        if ($throw && ($this->_stmtErrno !== 0))
         {
-            throw new Exception($stmt->error, $stmt->errno);
+            throw new Exception($this->_stmtError, $this->_stmtErrno);
         }
         
         return ($stmt->affected_rows > 0);
@@ -1078,9 +1078,9 @@ class MysqliDb
         $this->reset();
         $this->count = $stmt->affected_rows;
         
-        if ($throw && ($stmt->errno !== 0))
+        if ($throw && ($this->_stmtErrno !== 0))
         {
-            throw new Exception($stmt->error, $stmt->errno);
+            throw new Exception($this->_stmtError, $this->_stmtErrno);
         }
 
         if ($stmt->affected_rows < 1) {
@@ -1233,9 +1233,29 @@ class MysqliDb
         if ($shouldStoreResult) {
             $stmt->free_result();
         }
+        
+        /* BUG http://stackoverflow.com/questions/25377030/mysqli-xdebug-breakpoint-after-closing-statment-result-in-many-warnings 
+           temporarily disable the buggy module interconnection         */
+        if (function_exists('xdebug_disable'))
+              {
+               $errorlevel=error_reporting();
+               $displayerrors=ini_get('display_errors');
+               ini_set('display_errors',0);
+                error_reporting(0);
+                xdebug_disable();
+              }
+        /* Returning to normal xDebugging is only possible after $this->_mysqli->close
+        if (function_exists('xdebug_enable'))
+              {
+                xdebug_enable();
+                error_reporting($errorlevel);
+               ini_set('display_errors',$displayerrors);
+              }
+         * 
+         */
 
         $stmt->close();
-
+        
         // stored procedures sometimes can return more then 1 resultset
         if ($this->mysqli()->more_results()) {
             $this->mysqli()->next_result();
