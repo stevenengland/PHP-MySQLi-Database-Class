@@ -647,9 +647,9 @@ class MysqliDb
      *
      * @return bool Boolean indicating whether the insert query was completed succesfully.
      */
-    public function insert($tableName, $insertData)
+    public function insert($tableName, $insertData, $throw = true)
     {
-        return $this->_buildInsert($tableName, $insertData, 'INSERT');
+        return $this->_buildInsert($tableName, $insertData, 'INSERT', $throw);
     }
 
     /**
@@ -660,9 +660,9 @@ class MysqliDb
      *
      * @return bool Boolean indicating whether the insert query was completed succesfully.
      */
-    public function replace($tableName, $insertData)
+    public function replace($tableName, $insertData, $throw = true)
     {
-        return $this->_buildInsert($tableName, $insertData, 'REPLACE');
+        return $this->_buildInsert($tableName, $insertData, 'REPLACE', $throw);
     }
 
     /**
