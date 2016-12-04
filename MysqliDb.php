@@ -738,6 +738,7 @@ class MysqliDb
         $stmt->execute();
         $this->_stmtError = $stmt->error;
         $this->_stmtErrno = $stmt->errno;
+        $this->count = $stmt->affected_rows;
         $this->reset();
 
         if ($throw && ($this->_stmtErrno !== 0))
